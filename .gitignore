@@ -1,0 +1,13 @@
+# Generator script (only needed locally)
+generate_screenshot.py
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Composer development artifacts
+/composer.phar

@@ -1,0 +1,224 @@
+name: Update AWS SDK for PHP
+
+on:
+  schedule:
+    # Run once a day at 06:00 UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch: {}   # Allow manual triggers
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check-and-update:
+    name: Check for new AWS SDK version
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 1. Checkout ──────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ── 2. Fetch latest SDK version from Packagist ────────────────────────
+      - name: Get latest AWS SDK for PHP version
+        id: latest
+        run: |
+          LATEST=$(curl -s "https://packagist.org/packages/aws/aws-sdk-php.json" \
+            | python3 -c "
+          import json, sys
+          data = json.load(sys.stdin)
+          versions = list(data['package']['versions'].keys())
+          stable = [v for v in versions if not any(x in v.lower() for x in ['alpha','beta','rc','dev','-'])]
+          print(stable[0])
+          ")
+          echo "version=$LATEST" >> "$GITHUB_OUTPUT"
+          echo "Latest AWS SDK for PHP: $LATEST"
+
+      # ── 3. Read the current version from the plugin file ──────────────────
+      - name: Get current plugin version
+        id: current
+        run: |
+          CURRENT=$(grep "^define( 'AWS_SDK_WP_VERSION'" aws-sdk.php \
+            | sed "s/.*'\([0-9.]*\)'.*/\1/")
+          echo "version=$CURRENT" >> "$GITHUB_OUTPUT"
+          echo "Current plugin version: $CURRENT"
+
+      # ── 4. Exit early if nothing changed ──────────────────────────────────
+      - name: Compare versions
+        id: compare
+        run: |
+          if [ "${{ steps.latest.outputs.version }}" = "${{ steps.current.outputs.version }}" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No version change – exiting early."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "New version detected: ${{ steps.latest.outputs.version }}"
+          fi
+
+      # ── 5. Set up PHP + Composer ──────────────────────────────────────────
+      - name: Set up PHP
+        if: steps.compare.outputs.changed == 'true'
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer:v2
+
+      # ── 6. Fetch the release date for the new version ─────────────────────
+      - name: Get release date
+        id: release_date
+        if: steps.compare.outputs.changed == 'true'
+        run: |
+          NEW_VERSION="${{ steps.latest.outputs.version }}"
+          DATE=$(curl -s "https://packagist.org/packages/aws/aws-sdk-php.json" \
+            | python3 -c "
+          import json, sys
+          data = json.load(sys.stdin)
+          v = '$NEW_VERSION'
+          pkg = data['package']['versions'].get(v, {})
+          print(pkg.get('time', '')[:10])
+          ")
+          echo "date=$DATE" >> "$GITHUB_OUTPUT"
+          echo "Release date: $DATE"
+
+      # ── 7. Update composer.json to pin the new version ────────────────────
+      - name: Update composer.json
+        if: steps.compare.outputs.changed == 'true'
+        run: |
+          NEW_VERSION="${{ steps.latest.outputs.version }}"
+          python3 -c "
+          import json
+          with open('composer.json') as f:
+              data = json.load(f)
+          data['require']['aws/aws-sdk-php'] = '$NEW_VERSION'
+          with open('composer.json', 'w') as f:
+              json.dump(data, f, indent=4)
+              f.write('\n')
+          "
+
+      # ── 8. Re-install vendor with the new SDK ─────────────────────────────
+      - name: Composer install
+        if: steps.compare.outputs.changed == 'true'
+        run: composer install --no-dev --optimize-autoloader
+
+      # ── 9. Update version constants in the plugin PHP file ────────────────
+      - name: Update plugin PHP file
+        if: steps.compare.outputs.changed == 'true'
+        env:
+          NEW_VERSION: ${{ steps.latest.outputs.version }}
+          RELEASE_DATE: ${{ steps.release_date.outputs.date }}
+        run: |
+          sed -i \
+            "s/^\( \* Version:.*\)$/\ * Version:           $NEW_VERSION/" \
+            aws-sdk.php
+          sed -i \
+            "s/^define( 'AWS_SDK_WP_VERSION'.*$/define( 'AWS_SDK_WP_VERSION',     '$NEW_VERSION' );/" \
+            aws-sdk.php
+          sed -i \
+            "s/^define( 'AWS_SDK_WP_RELEASE_DATE'.*$/define( 'AWS_SDK_WP_RELEASE_DATE', '$RELEASE_DATE' );/" \
+            aws-sdk.php
+
+      # ── 10. Update readme.txt ─────────────────────────────────────────────
+      - name: Update readme.txt
+        if: steps.compare.outputs.changed == 'true'
+        env:
+          NEW_VERSION: ${{ steps.latest.outputs.version }}
+          RELEASE_DATE: ${{ steps.release_date.outputs.date }}
+        run: |
+          sed -i "s/^Stable tag:.*/Stable tag:        $NEW_VERSION/" readme.txt
+          # Prepend changelog entry after the "== Changelog ==" heading
+          python3 - <<'PYEOF'
+          import os, re
+          new_version = os.environ['NEW_VERSION']
+          release_date = os.environ['RELEASE_DATE']
+          with open('readme.txt') as f:
+              content = f.read()
+          entry = f"\n= {new_version} =\n* Updated bundled AWS SDK for PHP to {new_version} (released {release_date}).\n"
+          # Insert after the Changelog header
+          content = re.sub(
+              r'(== Changelog ==\n)',
+              r'\1' + entry,
+              content,
+              count=1
+          )
+          with open('readme.txt', 'w') as f:
+              f.write(content)
+          PYEOF
+
+      # ── 11. Commit changes to a branch ───────────────────────────────────
+      - name: Create update branch and commit
+        if: steps.compare.outputs.changed == 'true'
+        env:
+          NEW_VERSION: ${{ steps.latest.outputs.version }}
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          BRANCH="update/aws-sdk-php-${NEW_VERSION}"
+          git checkout -b "$BRANCH"
+
+          git add composer.json composer.lock vendor/ aws-sdk.php readme.txt
+          git commit -m "Update AWS SDK for PHP to ${NEW_VERSION}
+
+          Automated update triggered by the daily version check workflow.
+          SDK release date: ${{ steps.release_date.outputs.date }}"
+
+          git push -u origin "$BRANCH"
+
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+        id: commit
+
+      # ── 12. Open a Pull Request ───────────────────────────────────────────
+      - name: Create pull request
+        if: steps.compare.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ steps.commit.outputs.branch }}
+          base: main
+          title: "Update AWS SDK for PHP to ${{ steps.latest.outputs.version }}"
+          body: |
+            ## AWS SDK for PHP – Automated Update
+
+            | Field | Value |
+            |---|---|
+            | **Previous version** | `${{ steps.current.outputs.version }}` |
+            | **New version** | `${{ steps.latest.outputs.version }}` |
+            | **Release date** | `${{ steps.release_date.outputs.date }}` |
+
+            ### Changes
+            - Updated `composer.json` to require `aws/aws-sdk-php@${{ steps.latest.outputs.version }}`
+            - Re-ran `composer install --no-dev --optimize-autoloader`
+            - Updated version constants in `aws-sdk.php`
+            - Updated `readme.txt` `Stable tag` and `Changelog`
+
+            ### Checklist
+            - [ ] Review composer.lock diff
+            - [ ] Verify autoloader works
+            - [ ] Merge and tag release `${{ steps.latest.outputs.version }}`
+
+            ---
+            _This PR was opened automatically by the [Update AWS SDK for PHP](${{ github.server_url }}/${{ github.repository }}/actions/workflows/update-aws-sdk.yml) workflow._
+          labels: dependencies,automated
+
+      # ── 13. Create a GitHub Release ───────────────────────────────────────
+      - name: Create GitHub Release
+        if: steps.compare.outputs.changed == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.latest.outputs.version }}
+          name: AWS SDK for WordPress ${{ steps.latest.outputs.version }}
+          body: |
+            Bundles **AWS SDK for PHP ${{ steps.latest.outputs.version }}** (released ${{ steps.release_date.outputs.date }}).
+
+            ### Installation
+            Download `aws-sdk.zip` below and install via **Plugins → Add New → Upload Plugin** in WordPress.
+
+            ### Changes in this SDK version
+            See the [AWS SDK for PHP changelog](https://github.com/aws/aws-sdk-php/blob/master/CHANGELOG.md) for the full list of changes.
+          draft: true
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -45,19 +45,50 @@ jobs:
           echo "version=$CURRENT" >> "$GITHUB_OUTPUT"
           echo "Current plugin version: $CURRENT"
 
-      # ── 4. Exit early if nothing changed ──────────────────────────────────
+      # ── 4. Fetch latest WordPress version for "Tested up to" ─────────────
+      - name: Get latest WordPress version
+        id: wp_version
+        run: |
+          # Line 3 of the WordPress version-check API contains the latest version
+          WP_RAW=$(curl -s "https://api.wordpress.org/core/version-check/1.1/" | sed -n '3p')
+          # Strip patch segment: "6.7.1" → "6.7", "6.7" → "6.7"
+          WP_VERSION=$(echo "$WP_RAW" | sed 's/^\([0-9]*\.[0-9]*\)\(\.[0-9]*\)*$/\1/')
+          echo "version=$WP_VERSION" >> "$GITHUB_OUTPUT"
+          echo "Latest WordPress: $WP_VERSION"
+
+      # ── 5. Read the current "Tested up to" from readme.txt ───────────────
+      - name: Get current Tested up to
+        id: wp_current
+        run: |
+          CURRENT=$(grep "^Tested up to:" readme.txt | sed 's/Tested up to:[[:space:]]*//')
+          echo "version=$CURRENT" >> "$GITHUB_OUTPUT"
+          echo "Current Tested up to: $CURRENT"
+
+      # ── 6. Exit early if nothing changed ──────────────────────────────────
       - name: Compare versions
         id: compare
         run: |
-          if [ "${{ steps.latest.outputs.version }}" = "${{ steps.current.outputs.version }}" ]; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "No version change – exiting early."
-          else
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-            echo "New version detected: ${{ steps.latest.outputs.version }}"
+          SDK_CHANGED=false
+          WP_CHANGED=false
+
+          if [ "${{ steps.latest.outputs.version }}" != "${{ steps.current.outputs.version }}" ]; then
+            SDK_CHANGED=true
+            echo "New SDK version detected: ${{ steps.latest.outputs.version }}"
           fi
 
-      # ── 5. Set up PHP + Composer ──────────────────────────────────────────
+          if [ "${{ steps.wp_version.outputs.version }}" != "${{ steps.wp_current.outputs.version }}" ]; then
+            WP_CHANGED=true
+            echo "New WordPress version detected: ${{ steps.wp_version.outputs.version }}"
+          fi
+
+          if [ "$SDK_CHANGED" = "true" ] || [ "$WP_CHANGED" = "true" ]; then
+            echo "changed=true"  >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No changes detected – exiting early."
+          fi
+
+      # ── 7. Set up PHP + Composer ──────────────────────────────────────────
       - name: Set up PHP
         if: steps.compare.outputs.changed == 'true'
         uses: shivammathur/setup-php@v2
@@ -65,7 +96,7 @@ jobs:
           php-version: '8.2'
           tools: composer:v2
 
-      # ── 6. Fetch the release date for the new version ─────────────────────
+      # ── 8. Fetch the release date for the new version ─────────────────────
       - name: Get release date
         id: release_date
         if: steps.compare.outputs.changed == 'true'
@@ -82,7 +113,7 @@ jobs:
           echo "date=$DATE" >> "$GITHUB_OUTPUT"
           echo "Release date: $DATE"
 
-      # ── 7. Update composer.json to pin the new version ────────────────────
+      # ── 9. Update composer.json to pin the new version ────────────────────
       - name: Update composer.json
         if: steps.compare.outputs.changed == 'true'
         run: |
@@ -97,12 +128,12 @@ jobs:
               f.write('\n')
           "
 
-      # ── 8. Re-install vendor with the new SDK ─────────────────────────────
+      # ── 10. Re-install vendor with the new SDK ────────────────────────────
       - name: Composer install
         if: steps.compare.outputs.changed == 'true'
         run: composer install --no-dev --optimize-autoloader
 
-      # ── 9. Update version constants in the plugin PHP file ────────────────
+      # ── 11. Update version constants in the plugin PHP file ───────────────
       - name: Update plugin PHP file
         if: steps.compare.outputs.changed == 'true'
         env:
@@ -119,14 +150,16 @@ jobs:
             "s/^define( 'AWS_SDK_WP_RELEASE_DATE'.*$/define( 'AWS_SDK_WP_RELEASE_DATE', '$RELEASE_DATE' );/" \
             aws-sdk.php
 
-      # ── 10. Update readme.txt ─────────────────────────────────────────────
+      # ── 12. Update CHANGELOG.md and readme.txt ────────────────────────────
       - name: Update CHANGELOG.md and readme.txt
         if: steps.compare.outputs.changed == 'true'
         env:
           NEW_VERSION: ${{ steps.latest.outputs.version }}
           RELEASE_DATE: ${{ steps.release_date.outputs.date }}
+          WP_VERSION: ${{ steps.wp_version.outputs.version }}
         run: |
           sed -i "s/^Stable tag:.*/Stable tag:        $NEW_VERSION/" readme.txt
+          sed -i "s/^Tested up to:.*/Tested up to:      $WP_VERSION/" readme.txt
 
           python3 - <<'PYEOF'
           import os, re
@@ -180,7 +213,7 @@ jobs:
               f.write(before + new_cl + '\n' + after)
           PYEOF
 
-      # ── 11. Commit and push directly to main ─────────────────────────────
+      # ── 13. Commit and push directly to main ─────────────────────────────
       - name: Commit and push to main
         if: steps.compare.outputs.changed == 'true'
         id: commit
@@ -205,7 +238,7 @@ jobs:
 
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-      # ── 12. Create a published GitHub Release (latest) ────────────────────
+      # ── 14. Create a published GitHub Release (latest) ────────────────────
       - name: Create GitHub Release
         if: steps.compare.outputs.changed == 'true'
         uses: softprops/action-gh-release@v2

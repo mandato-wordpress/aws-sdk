@@ -1,5 +1,5 @@
 === AWS SDK for WordPress ===
-Contributors:      mandatowp
+Contributors:      amandato
 Tags:              aws, sdk, amazon, s3, ec2, cloudfront, lambda
 Requires at least: 5.8
 Tested up to:      6.7
@@ -48,7 +48,7 @@ if ( defined( 'AWS_SDK_WP_VERSION' ) ) {
 
 = Plugin versioning =
 
-The plugin version always matches the bundled AWS SDK for PHP version. A GitHub Actions workflow checks for new SDK releases once per day and automatically opens a pull request with the updated vendor directory and a new plugin release.
+The plugin version always matches the bundled AWS SDK for PHP version. A GitHub Actions workflow checks for new SDK releases once per day, automatically commits the updated vendor directory, and publishes a new release.
 
 = Developer usage =
 
@@ -104,6 +104,8 @@ Yes. The AWS SDK for PHP 3.x fully supports PHP 8.0, 8.1, 8.2, and 8.3.
 1. The **Tools → AWS SDK** admin page showing the bundled SDK version, release date, and usage examples.
 
 == Changelog ==
+
+For the full history see [CHANGELOG.md](https://github.com/mandato-wordpress/aws-sdk/blob/main/CHANGELOG.md).
 
 = 3.373.8 =
 * Initial release bundling AWS SDK for PHP 3.373.8 (released 2026-03-23).

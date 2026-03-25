@@ -120,30 +120,64 @@ jobs:
             aws-sdk.php
 
       # ── 10. Update readme.txt ─────────────────────────────────────────────
-      - name: Update readme.txt
+      - name: Update CHANGELOG.md and readme.txt
         if: steps.compare.outputs.changed == 'true'
         env:
           NEW_VERSION: ${{ steps.latest.outputs.version }}
           RELEASE_DATE: ${{ steps.release_date.outputs.date }}
         run: |
           sed -i "s/^Stable tag:.*/Stable tag:        $NEW_VERSION/" readme.txt
-          # Prepend changelog entry after the "== Changelog ==" heading
+
           python3 - <<'PYEOF'
           import os, re
-          new_version = os.environ['NEW_VERSION']
+
+          new_version  = os.environ['NEW_VERSION']
           release_date = os.environ['RELEASE_DATE']
-          with open('readme.txt') as f:
-              content = f.read()
-          entry = f"\n= {new_version} =\n* Updated bundled AWS SDK for PHP to {new_version} (released {release_date}).\n"
-          # Insert after the Changelog header
-          content = re.sub(
-              r'(== Changelog ==\n)',
-              r'\1' + entry,
-              content,
-              count=1
+          entry_md     = f"\n## [{new_version}] – {release_date}\n\n- Updated bundled AWS SDK for PHP to {new_version} (released {release_date}).\n"
+          entry_wp     = f"= {new_version} =\n* Updated bundled AWS SDK for PHP to {new_version} (released {release_date}).\n"
+
+          # ── CHANGELOG.md: prepend after the first heading ──────────────────
+          with open('CHANGELOG.md') as f:
+              md = f.read()
+          # Insert after the first blank line following the top-level heading
+          md = re.sub(
+              r'(# Changelog\n.*?\n\n)',
+              r'\1' + entry_md.lstrip('\n') + '\n',
+              md,
+              count=1,
+              flags=re.DOTALL,
           )
+          with open('CHANGELOG.md', 'w') as f:
+              f.write(md)
+
+          # ── readme.txt: keep only the 3 most recent entries ────────────────
+          with open('readme.txt') as f:
+              txt = f.read()
+
+          # Locate the Changelog section
+          changelog_marker = '== Changelog =='
+          upgrade_marker   = '== Upgrade Notice =='
+          start = txt.index(changelog_marker)
+          end   = txt.index(upgrade_marker)
+
+          before   = txt[:start]
+          after    = txt[end:]
+          cl_block = txt[start:end]
+
+          # Find the link line (first line after the header) and existing entries
+          link_match = re.search(r'(For the full history.*?\n)', cl_block)
+          link_line  = link_match.group(1) if link_match else ''
+
+          # Collect existing versioned entries  (= X.Y.Z = … )
+          entries = re.findall(r'(= [\d.]+ =\n(?:.*\n)*?)(?==|\Z)', cl_block)
+
+          # Prepend new entry and keep only 3 total
+          entries.insert(0, entry_wp + '\n')
+          entries = entries[:3]
+
+          new_cl  = f'{changelog_marker}\n\n{link_line}\n' + ''.join(entries)
           with open('readme.txt', 'w') as f:
-              f.write(content)
+              f.write(before + new_cl + '\n' + after)
           PYEOF
 
       # ── 11. Commit and push directly to main ─────────────────────────────
@@ -156,7 +190,7 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git add composer.json composer.lock vendor/ aws-sdk.php readme.txt
+          git add composer.json composer.lock vendor/ aws-sdk.php readme.txt CHANGELOG.md
           git commit -m "Update AWS SDK for PHP to ${NEW_VERSION}
 
           Automated update triggered by the daily version check workflow.

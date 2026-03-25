@@ -8,7 +8,6 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 jobs:
   check-and-update:
@@ -147,17 +146,15 @@ jobs:
               f.write(content)
           PYEOF
 
-      # ── 11. Commit changes to a branch ───────────────────────────────────
-      - name: Create update branch and commit
+      # ── 11. Commit and push directly to main ─────────────────────────────
+      - name: Commit and push to main
         if: steps.compare.outputs.changed == 'true'
+        id: commit
         env:
           NEW_VERSION: ${{ steps.latest.outputs.version }}
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          BRANCH="update/aws-sdk-php-${NEW_VERSION}"
-          git checkout -b "$BRANCH"
 
           git add composer.json composer.lock vendor/ aws-sdk.php readme.txt
           git commit -m "Update AWS SDK for PHP to ${NEW_VERSION}
@@ -165,45 +162,16 @@ jobs:
           Automated update triggered by the daily version check workflow.
           SDK release date: ${{ steps.release_date.outputs.date }}"
 
-          git push -u origin "$BRANCH"
+          # Tag the commit with the new version number
+          git tag "${NEW_VERSION}" -m "AWS SDK for WordPress ${NEW_VERSION}"
 
-          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
-        id: commit
+          # Push the commit and the tag together
+          git push origin main
+          git push origin "${NEW_VERSION}"
 
-      # ── 12. Open a Pull Request ───────────────────────────────────────────
-      - name: Create pull request
-        if: steps.compare.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ steps.commit.outputs.branch }}
-          base: main
-          title: "Update AWS SDK for PHP to ${{ steps.latest.outputs.version }}"
-          body: |
-            ## AWS SDK for PHP – Automated Update
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-            | Field | Value |
-            |---|---|
-            | **Previous version** | `${{ steps.current.outputs.version }}` |
-            | **New version** | `${{ steps.latest.outputs.version }}` |
-            | **Release date** | `${{ steps.release_date.outputs.date }}` |
-
-            ### Changes
-            - Updated `composer.json` to require `aws/aws-sdk-php@${{ steps.latest.outputs.version }}`
-            - Re-ran `composer install --no-dev --optimize-autoloader`
-            - Updated version constants in `aws-sdk.php`
-            - Updated `readme.txt` `Stable tag` and `Changelog`
-
-            ### Checklist
-            - [ ] Review composer.lock diff
-            - [ ] Verify autoloader works
-            - [ ] Merge and tag release `${{ steps.latest.outputs.version }}`
-
-            ---
-            _This PR was opened automatically by the [Update AWS SDK for PHP](${{ github.server_url }}/${{ github.repository }}/actions/workflows/update-aws-sdk.yml) workflow._
-          labels: dependencies,automated
-
-      # ── 13. Create a GitHub Release ───────────────────────────────────────
+      # ── 12. Create a published GitHub Release (latest) ────────────────────
       - name: Create GitHub Release
         if: steps.compare.outputs.changed == 'true'
         uses: softprops/action-gh-release@v2
@@ -218,7 +186,8 @@ jobs:
 
             ### Changes in this SDK version
             See the [AWS SDK for PHP changelog](https://github.com/aws/aws-sdk-php/blob/master/CHANGELOG.md) for the full list of changes.
-          draft: true
+          draft: false
           prerelease: false
+          make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

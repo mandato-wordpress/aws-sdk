@@ -3,7 +3,7 @@ Contributors:      amandato
 Tags:              aws, sdk, amazon, s3, ec2, cloudfront, lambda
 Requires at least: 5.8
 Tested up to:      6.7
-Requires PHP:      7.4
+Requires PHP:      8.2
 Stable tag:        3.373.8
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -97,7 +97,7 @@ The plugin version mirrors the AWS SDK for PHP version. Install the latest plugi
 
 = Will this work with PHP 8.x? =
 
-Yes. The AWS SDK for PHP 3.x fully supports PHP 8.0, 8.1, 8.2, and 8.3.
+Yes. PHP 8.2 or higher is required. The AWS SDK for PHP 3.x fully supports PHP 8.2 and 8.3.
 
 == Screenshots ==
 

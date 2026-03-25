@@ -4,7 +4,9 @@
     "type": "wordpress-plugin",
     "license": "GPL-2.0-or-later",
     "require": {
-        "aws/aws-sdk-php": "3.373.8"
+        "php": "^8.2",
+        "aws/aws-sdk-php": "3.373.8",
+        "symfony/filesystem": "^7.3"
     },
     "config": {
         "optimize-autoloader": true,

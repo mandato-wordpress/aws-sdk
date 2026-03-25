@@ -5,7 +5,7 @@
  * Description:       Bundles the AWS SDK for PHP and exposes its autoloader so other plugins and themes can use AWS services without managing their own SDK copy.
  * Version:           3.373.8
  * Requires at least: 5.8
- * Requires PHP:      7.4
+ * Requires PHP:      8.2
  * Author:            Mandato WordPress
  * Author URI:        https://github.com/mandato-wordpress
  * License:           GPL-2.0-or-later

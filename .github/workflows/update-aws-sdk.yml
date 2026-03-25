@@ -128,10 +128,10 @@ jobs:
               f.write('\n')
           "
 
-      # ── 10. Re-install vendor with the new SDK ────────────────────────────
-      - name: Composer install
+      # ── 10. Update lock file and install vendor with the new SDK ─────────
+      - name: Composer update
         if: steps.compare.outputs.changed == 'true'
-        run: composer install --no-dev --optimize-autoloader
+        run: composer update aws/aws-sdk-php --no-dev --optimize-autoloader
 
       # ── 11. Update version constants in the plugin PHP file ───────────────
       - name: Update plugin PHP file

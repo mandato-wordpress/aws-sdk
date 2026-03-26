@@ -90,9 +90,9 @@ jobs:
           fi
 
       # ── 6a. Continue anyway ───────────────────────────────────────────────
-      - name: Compare versions 
+      - name: Compare versions override
         if: ${{ github.event_name == 'workflow_dispatch' }}
-        id: compare-
+        id: compare-override
         run: |
           echo "We are updating manually, continuing..."
           echo "changed=true"  >> "$GITHUB_OUTPUT"

@@ -1,6 +1,6 @@
 {
-    "name": "mandato-wordpress/aws-sdk",
-    "description": "WordPress plugin that bundles the AWS SDK for PHP",
+    "name": "mandato-wordpress/full-aws-sdk",
+    "description": "WordPress plugin that bundles the full AWS SDK for PHP",
     "type": "wordpress-plugin",
     "license": "GPL-2.0-or-later",
     "require": {

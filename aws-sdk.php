@@ -1,16 +1,16 @@
 <?php
 /**
- * Plugin Name:       AWS SDK for WordPress
+ * Plugin Name:       PHP AWS SDK
  * Plugin URI:        https://github.com/mandato-wordpress/aws-sdk
  * Description:       Bundles the AWS SDK for PHP and exposes its autoloader so other plugins and themes can use AWS services without managing their own SDK copy.
  * Version:           3.374.0
  * Requires at least: 5.8
  * Requires PHP:      8.2
- * Author:            Mandato WordPress
+ * Author:            amandato
  * Author URI:        https://github.com/mandato-wordpress
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:       aws-sdk
+ * Text Domain:       php-aws-sdk
  */
 
 defined( 'ABSPATH' ) || exit;

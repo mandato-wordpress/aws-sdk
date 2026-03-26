@@ -1,8 +1,8 @@
 <?php
 /**
- * Plugin Name:       PHP AWS SDK
+ * Plugin Name:       Full AWS SDK
  * Plugin URI:        https://github.com/mandato-wordpress/aws-sdk
- * Description:       Bundles the AWS SDK for PHP and exposes its autoloader so other plugins and themes can use AWS services without managing their own SDK copy.
+ * Description:       Bundles the AWS SDK for PHP and exposes its autoloader so other plugins and themes can use AWS services without managing their own copy.
  * Version:           3.374.0
  * Requires at least: 5.8
  * Requires PHP:      8.2
@@ -10,51 +10,51 @@
  * Author URI:        https://github.com/mandato-wordpress
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:       php-aws-sdk
+ * Text Domain:       full-aws-sdk
  */
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'AWS_SDK_WP_VERSION',     '3.374.0' );
-define( 'AWS_SDK_WP_RELEASE_DATE', '2026-03-25' );
-define( 'AWS_SDK_WP_FILE',         __FILE__ );
-define( 'AWS_SDK_WP_DIR',          plugin_dir_path( __FILE__ ) );
+define( 'FULL_AWS_SDK_VERSION',     '3.374.0' );
+define( 'FULL_AWS_SDK_RELEASE_DATE', '2026-03-25' );
+define( 'FULL_AWS_SDK_FILE',         __FILE__ );
+define( 'FULL_AWS_SDK_DIR',          plugin_dir_path( __FILE__ ) );
 
 /**
  * Load the Composer-generated autoloader.
  * Once loaded, any code in WordPress (plugins, themes) can instantiate
  * AWS SDK clients directly, e.g. new \Aws\S3\S3Client([...])
  */
-if ( ! class_exists( 'Aws\\Sdk' ) && file_exists( AWS_SDK_WP_DIR . 'vendor/autoload.php' ) ) {
-    require_once AWS_SDK_WP_DIR . 'vendor/autoload.php';
+if ( ! class_exists( 'Aws\\Sdk' ) && file_exists( FULL_AWS_SDK_DIR . 'vendor/autoload.php' ) ) {
+    require_once FULL_AWS_SDK_DIR . 'vendor/autoload.php';
 }
 
 /**
  * Register the admin page under Tools.
  */
-add_action( 'admin_menu', 'aws_sdk_wp_register_admin_page' );
+add_action( 'admin_menu', 'full_aws_sdk_register_admin_page' );
 
-function aws_sdk_wp_register_admin_page() {
+function full_aws_sdk_register_admin_page() {
     add_management_page(
-        __( 'AWS SDK', 'aws-sdk' ),       // Page title
-        __( 'AWS SDK', 'aws-sdk' ),       // Menu title
+        __( 'AWS SDK', 'full-aws-sdk' ),       // Page title
+        __( 'AWS SDK', 'full-aws-sdk' ),       // Menu title
         'manage_options',                  // Capability
-        'aws-sdk',                         // Menu slug
-        'aws_sdk_wp_render_admin_page'    // Callback
+        'full-aws-sdk',                         // Menu slug
+        'full_aws_sdk_render_admin_page'    // Callback
     );
 }
 
 /**
  * Render the admin page.
  */
-function aws_sdk_wp_render_admin_page() {
+function full_aws_sdk_render_admin_page() {
     if ( ! current_user_can( 'manage_options' ) ) {
         wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'aws-sdk' ) );
     }
 
-    $sdk_version      = AWS_SDK_WP_VERSION;
-    $sdk_release_date = AWS_SDK_WP_RELEASE_DATE;
-    $autoloader_path  = AWS_SDK_WP_DIR . 'vendor/autoload.php';
+    $sdk_version      = FULL_AWS_SDK_VERSION;
+    $sdk_release_date = FULL_AWS_SDK_RELEASE_DATE;
+    $autoloader_path  = FULL_AWS_SDK_DIR . 'vendor/autoload.php';
     $autoloader_ok    = file_exists( $autoloader_path );
 
     ?>
@@ -108,7 +108,7 @@ function aws_sdk_wp_render_admin_page() {
             <p><?php esc_html_e( 'The autoloader is registered automatically when this plugin is active. You can use any AWS SDK client without any additional setup:', 'aws-sdk' ); ?></p>
             <pre style="background:#1d2327;color:#f0f0f1;padding:16px;border-radius:4px;overflow:auto;font-size:13px;"><code>&lt;?php
 // Confirm the AWS SDK plugin is active before using it.
-if ( defined( 'AWS_SDK_WP_VERSION' ) ) {
+if ( class_exists( 'Aws\\S3\\S3Client' ) && class_exists( 'Aws\\CloudFront\\CloudFrontClient' ) ) {
     $s3 = new \Aws\S3\S3Client([
         'region'  =&gt; 'us-east-1',
         'version' =&gt; 'latest',
@@ -147,6 +147,7 @@ if ( defined( 'AWS_SDK_WP_VERSION' ) ) {
                     'Rekognition – Image Analysis',
                     'Polly – Text to Speech',
                     'Translate – Language Translation',
+                    'Bedrock – Generative AI',
                 ];
                 foreach ( $services as $service ) {
                     echo '<li>' . esc_html( $service ) . '</li>';

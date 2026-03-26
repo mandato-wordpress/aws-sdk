@@ -115,6 +115,9 @@ The minimum version requirements are set by the [AWS SDK for PHP](https://github
 
 For the full history see [CHANGELOG.md](https://github.com/mandato-wordpress/aws-sdk/blob/main/CHANGELOG.md).
 
+= 3.374.0 =
+* Updated bundled Full AWS SDK plugin for WordPress to 3.374.0 (released 2026-03-25).
+
 
 == Upgrade Notice ==
 

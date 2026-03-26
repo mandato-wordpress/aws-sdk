@@ -66,8 +66,8 @@ def make_banner(W, H):
 
     aw_x, aw_y = int(stripe_w * 0.08), int(H * 0.18)
     draw.text((aw_x, aw_y),                          'AWS',       font=f_aws, fill='#1d2327')
-    draw.text((aw_x, aw_y + int(90 * scale) + 4),   'SDK for',   font=f_sdk, fill='#1d2327')
-    draw.text((aw_x, aw_y + int(90 * scale) + 4 + int(30 * scale)), 'PHP', font=f_sdk, fill='#1d2327')
+    draw.text((aw_x, aw_y + int(90 * scale) + 4),   'Full SDK',   font=f_sdk, fill='#1d2327')
+    draw.text((aw_x, aw_y + int(90 * scale) + 4 + int(30 * scale)), 'for WordPress', font=f_sdk, fill='#1d2327')
 
     # Title and tagline on the dark side
     tx = overlap + int(30 * scale)

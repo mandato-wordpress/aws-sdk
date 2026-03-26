@@ -22,7 +22,7 @@ jobs:
           fetch-depth: 0
 
       # ── 2. Fetch latest SDK version from Packagist ────────────────────────
-      - name: Get latest AWS SDK for PHP version
+      - name: Get latest Full AWS SDK plugin for WordPress version
         id: latest
         run: |
           LATEST=$(curl -s "https://packagist.org/packages/aws/aws-sdk-php.json" \
@@ -34,7 +34,7 @@ jobs:
           print(stable[0])
           ")
           echo "version=$LATEST" >> "$GITHUB_OUTPUT"
-          echo "Latest AWS SDK for PHP: $LATEST"
+          echo "Latest Full AWS SDK plugin for WordPress: $LATEST"
 
       # ── 3. Read the current version from the plugin file ──────────────────
       - name: Get current plugin version
@@ -171,8 +171,8 @@ jobs:
 
           new_version  = os.environ['NEW_VERSION']
           release_date = os.environ['RELEASE_DATE']
-          entry_md     = f"\n## [{new_version}] – {release_date}\n\n- Updated bundled AWS SDK for PHP to {new_version} (released {release_date}).\n"
-          entry_wp     = f"= {new_version} =\n* Updated bundled AWS SDK for PHP to {new_version} (released {release_date}).\n"
+          entry_md     = f"\n## [{new_version}] – {release_date}\n\n- Updated bundled Full AWS SDK plugin for WordPress to {new_version} (released {release_date}).\n"
+          entry_wp     = f"= {new_version} =\n* Updated bundled Full AWS SDK plugin for WordPress to {new_version} (released {release_date}).\n"
 
           # ── CHANGELOG.md: prepend after the first heading ──────────────────
           with open('CHANGELOG.md') as f:
@@ -261,13 +261,13 @@ jobs:
           tag_name: ${{ steps.latest.outputs.version }}
           name: AWS SDK for WordPress ${{ steps.latest.outputs.version }}
           body: |
-            Bundles **AWS SDK for PHP ${{ steps.latest.outputs.version }}** (released ${{ steps.release_date.outputs.date }}).
+            Bundles **Full AWS SDK plugin for WordPress ${{ steps.latest.outputs.version }}** (released ${{ steps.release_date.outputs.date }}).
 
             ### Installation
             Download `full-aws-sdk.zip` below and install via **Plugins → Add New → Upload Plugin** in WordPress.
 
             ### Changes in this SDK version
-            See the [AWS SDK for PHP changelog](https://github.com/aws/aws-sdk-php/blob/master/CHANGELOG.md) for the full list of changes.
+            See the [Full AWS SDK plugin for WordPress changelog](https://github.com/aws/aws-sdk-php/blob/master/CHANGELOG.md) for the full list of changes.
           draft: false
           prerelease: false
           make_latest: true

@@ -59,17 +59,17 @@
         },
         {
             "name": "aws/aws-sdk-php",
-            "version": "3.378.1",
-            "version_normalized": "3.378.1.0",
+            "version": "3.378.2",
+            "version_normalized": "3.378.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/aws/aws-sdk-php.git",
-                "reference": "c7a07701703e95c888a24959d5ea426c3d374240"
+                "reference": "df2a6c362ddce2ede3ac3a8286f5788847e614b4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/c7a07701703e95c888a24959d5ea426c3d374240",
-                "reference": "c7a07701703e95c888a24959d5ea426c3d374240",
+                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/df2a6c362ddce2ede3ac3a8286f5788847e614b4",
+                "reference": "df2a6c362ddce2ede3ac3a8286f5788847e614b4",
                 "shasum": ""
             },
             "require": {
@@ -109,7 +109,7 @@
                 "ext-pcntl": "To use client-side monitoring",
                 "ext-sockets": "To use client-side monitoring"
             },
-            "time": "2026-04-09T18:16:50+00:00",
+            "time": "2026-04-10T18:13:27+00:00",
             "type": "library",
             "extra": {
                 "branch-alias": {
@@ -153,7 +153,7 @@
             "support": {
                 "forum": "https://github.com/aws/aws-sdk-php/discussions",
                 "issues": "https://github.com/aws/aws-sdk-php/issues",
-                "source": "https://github.com/aws/aws-sdk-php/tree/3.378.1"
+                "source": "https://github.com/aws/aws-sdk-php/tree/3.378.2"
             },
             "install-path": "../aws/aws-sdk-php"
         },

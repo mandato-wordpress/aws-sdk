@@ -626,6 +626,8 @@ return array(
     'Aws\\InspectorScan\\InspectorScanClient' => $vendorDir . '/aws/aws-sdk-php/src/InspectorScan/InspectorScanClient.php',
     'Aws\\Inspector\\Exception\\InspectorException' => $vendorDir . '/aws/aws-sdk-php/src/Inspector/Exception/InspectorException.php',
     'Aws\\Inspector\\InspectorClient' => $vendorDir . '/aws/aws-sdk-php/src/Inspector/InspectorClient.php',
+    'Aws\\Interconnect\\Exception\\InterconnectException' => $vendorDir . '/aws/aws-sdk-php/src/Interconnect/Exception/InterconnectException.php',
+    'Aws\\Interconnect\\InterconnectClient' => $vendorDir . '/aws/aws-sdk-php/src/Interconnect/InterconnectClient.php',
     'Aws\\InternetMonitor\\Exception\\InternetMonitorException' => $vendorDir . '/aws/aws-sdk-php/src/InternetMonitor/Exception/InternetMonitorException.php',
     'Aws\\InternetMonitor\\InternetMonitorClient' => $vendorDir . '/aws/aws-sdk-php/src/InternetMonitor/InternetMonitorClient.php',
     'Aws\\Invoicing\\Exception\\InvoicingException' => $vendorDir . '/aws/aws-sdk-php/src/Invoicing/Exception/InvoicingException.php',

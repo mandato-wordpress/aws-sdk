@@ -3,6 +3,10 @@
 All notable changes to **Full AWS SDK** plugin for WordPress are documented here.
 The plugin version always mirrors the bundled [AWS SDK for PHP](https://github.com/aws/aws-sdk-php) version.
 
+## [3.379.0] – 2026-04-13
+
+- Updated bundled Full AWS SDK plugin for WordPress to 3.379.0 (released 2026-04-13).
+
 ## [3.378.2] – 2026-04-10
 
 - Updated bundled Full AWS SDK plugin for WordPress to 3.378.2 (released 2026-04-10).

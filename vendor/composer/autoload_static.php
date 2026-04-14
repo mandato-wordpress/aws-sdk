@@ -709,6 +709,8 @@ class ComposerStaticInitcf97c5c21f96dff26d039c142be64f5e
         'Aws\\InspectorScan\\InspectorScanClient' => __DIR__ . '/..' . '/aws/aws-sdk-php/src/InspectorScan/InspectorScanClient.php',
         'Aws\\Inspector\\Exception\\InspectorException' => __DIR__ . '/..' . '/aws/aws-sdk-php/src/Inspector/Exception/InspectorException.php',
         'Aws\\Inspector\\InspectorClient' => __DIR__ . '/..' . '/aws/aws-sdk-php/src/Inspector/InspectorClient.php',
+        'Aws\\Interconnect\\Exception\\InterconnectException' => __DIR__ . '/..' . '/aws/aws-sdk-php/src/Interconnect/Exception/InterconnectException.php',
+        'Aws\\Interconnect\\InterconnectClient' => __DIR__ . '/..' . '/aws/aws-sdk-php/src/Interconnect/InterconnectClient.php',
         'Aws\\InternetMonitor\\Exception\\InternetMonitorException' => __DIR__ . '/..' . '/aws/aws-sdk-php/src/InternetMonitor/Exception/InternetMonitorException.php',
         'Aws\\InternetMonitor\\InternetMonitorClient' => __DIR__ . '/..' . '/aws/aws-sdk-php/src/InternetMonitor/InternetMonitorClient.php',
         'Aws\\Invoicing\\Exception\\InvoicingException' => __DIR__ . '/..' . '/aws/aws-sdk-php/src/Invoicing/Exception/InvoicingException.php',
